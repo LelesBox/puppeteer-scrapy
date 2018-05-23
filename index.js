@@ -34,25 +34,9 @@ async function getLanguageList(page) {
   })
 }
 
-// (async () => {
-//   const browser = await puppeteer.launch({
-//     headless: true
-//   });
-//   const page = await browser.newPage();
-//   await page.goto('https://github.com/trending');
-//   let trending = await page.$$('.repo-list > li')
-//   let data = []
-//   for (let i = 0, l = trending.length; i < l; i++) {
-//     let title = await extractTrendInfo(page, trending[i])
-//     data.push(title)
-//   }
-//   await saveToCloud(timeFormat(new Date()), data)
-//   await browser.close();
-// })()
-
 async function scrapy() {
   const browser = await puppeteer.launch({
-    headless: false
+    headless: true
   });
   const page = await browser.newPage();
   await page.goto('https://github.com/trending');
@@ -62,8 +46,16 @@ async function scrapy() {
     let title = await extractTrendInfo(page, trending[i])
     data.push(title)
   }
-  await saveToCloud(timeFormat(new Date()), data)
-  await browser.close();
+  if (data.length > 0) {
+    await saveToCloud(timeFormat(new Date()), data)
+    await browser.close();
+  } else {
+    await new Promise((resolve) => {
+      setTimeout(() => {
+        scrapy().then(resolve)
+      }, 60 * 60 * 1000)
+    })
+  }
 }
 
 function timeFormat(date) {
